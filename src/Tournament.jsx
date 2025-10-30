@@ -1,32 +1,48 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Trash2, Plus } from 'lucide-react';
+import { database } from './firebase';
+import { ref, onValue, set, push, remove } from 'firebase/database';
 
 export default function TournamentTracker() {
-  const [teams, setTeams] = useState([
-    { id: 1, name: 'Team 1', FC24: 0, MK: 0, Dominoes: 0, UNO: 0, Chess: 0, Blooket: 0 },
-    { id: 2, name: 'Team 2', FC24: 0, MK: 0, Dominoes: 0, UNO: 0, Chess: 0, Blooket: 0 },
-  ]);
+  const [teams, setTeams] = useState([]);
   const [newTeamName, setNewTeamName] = useState('');
 
+  useEffect(() => {
+    const teamsRef = ref(database, 'teams');
+    onValue(teamsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const teamsList = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        }));
+        setTeams(teamsList);
+      } else {
+        setTeams([]);
+      }
+    });
+  }, []);
+
   const updateScore = (id, game, value) => {
-    setTeams(teams.map(t => 
-      t.id === id ? { ...t, [game]: Math.max(0, parseInt(value) || 0) } : t
-    ));
+    const teamRef = ref(database, `teams/${id}/${game}`);
+    set(teamRef, Math.max(0, parseInt(value) || 0));
   };
 
   const addTeam = () => {
     if (newTeamName.trim()) {
-      setTeams([...teams, {
-        id: Date.now(),
+      const teamsRef = ref(database, 'teams');
+      const newTeamRef = push(teamsRef);
+      set(newTeamRef, {
         name: newTeamName,
         FC24: 0, MK: 0, Dominoes: 0, UNO: 0, Chess: 0, Blooket: 0
-      }]);
+      });
       setNewTeamName('');
     }
   };
 
   const deleteTeam = (id) => {
-    setTeams(teams.filter(t => t.id !== id));
+    const teamRef = ref(database, `teams/${id}`);
+    remove(teamRef);
   };
 
   const getTotal = (team) => {
