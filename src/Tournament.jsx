@@ -85,7 +85,36 @@ export default function TournamentTracker() {
 
         {/* Leaderboard */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-          <div className="overflow-x-auto">
+          {/* Mobile Layout */}
+          <div className="md:hidden">
+            {sortedTeams.map((team, idx) => (
+              <div key={team.id} className={`p-4 border-b ${idx < 3 ? (idx === 0 ? 'bg-yellow-50' : idx === 1 ? 'bg-gray-50' : 'bg-orange-50') : ''}`}>
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <span className={`font-bold text-lg ${idx < 3 ? 'text-indigo-600' : ''}`}>{idx + 1}. {team.name}</span>
+                  </div>
+                  <div className="text-2xl font-bold text-indigo-600">{getTotal(team)}</div>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  {games.map(g => (
+                    <div key={g} className="text-center">
+                      <label className="text-sm text-gray-600">{g}</label>
+                      <input
+                        type="number"
+                        value={team[g]}
+                        onChange={(e) => updateScore(team.id, g, e.target.value)}
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        min="0"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-indigo-600 text-white">
                 <tr>
